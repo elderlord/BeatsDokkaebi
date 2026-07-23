@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { clamp, computeBeat, computeDistress } from '../src/logic.js';
+import { clamp, computeBeat, computeDistress, updateSealProgress } from '../src/logic.js';
 
 test('clamp 은 범위로 제한한다', () => {
   assert.equal(clamp(5, 0, 1), 1);
@@ -28,4 +28,19 @@ test('computeDistress 는 피크(3Hz)에서 1', () => {
 test('computeDistress 는 창 안에서 선형 상승/하강', () => {
   assert.equal(computeDistress(2), 0.5);   // (2-1)/(3-1)
   assert.equal(computeDistress(4.5), 0.5); // (6-4.5)/(6-3)
+});
+
+test('updateSealProgress 는 distress 충분하면 충전', () => {
+  // HOLD=3초 -> 1초당 +1/3
+  assert.ok(Math.abs(updateSealProgress(0, 1, 1) - 1 / 3) < 1e-9);
+});
+
+test('updateSealProgress 는 distress 낮으면 감소(관용)', () => {
+  // DECAY=0.5 -> 1초당 -0.5/3
+  assert.ok(Math.abs(updateSealProgress(0.5, 0, 1) - (0.5 - 0.5 / 3)) < 1e-9);
+});
+
+test('updateSealProgress 는 [0,1] 로 클램프', () => {
+  assert.equal(updateSealProgress(0.9, 1, 10), 1);
+  assert.equal(updateSealProgress(0.05, 0, 10), 0);
 });

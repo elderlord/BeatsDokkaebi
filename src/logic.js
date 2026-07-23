@@ -2,6 +2,9 @@ import {
   TARGET_BEAT_MIN,
   TARGET_BEAT_MAX,
   DISTRESS_PEAK_BEAT,
+  SEAL_THRESHOLD,
+  SEAL_HOLD_SECONDS,
+  SEAL_DECAY_FACTOR,
 } from './config.js';
 
 export function clamp(x, lo, hi) {
@@ -19,4 +22,12 @@ export function computeDistress(beat) {
     return (beat - TARGET_BEAT_MIN) / (DISTRESS_PEAK_BEAT - TARGET_BEAT_MIN);
   }
   return (TARGET_BEAT_MAX - beat) / (TARGET_BEAT_MAX - DISTRESS_PEAK_BEAT);
+}
+
+// distress가 임계값 이상이면 1을 향해 충전, 아니면 관용적으로 감소.
+export function updateSealProgress(progress, distress, dt) {
+  const next = distress >= SEAL_THRESHOLD
+    ? progress + dt / SEAL_HOLD_SECONDS
+    : progress - (dt * SEAL_DECAY_FACTOR) / SEAL_HOLD_SECONDS;
+  return clamp(next, 0, 1);
 }
