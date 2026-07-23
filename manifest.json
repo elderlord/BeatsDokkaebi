@@ -1,0 +1,9 @@
+{
+  "name": "도깨비불 봉인",
+  "short_name": "도깨비불",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#05060a",
+  "theme_color": "#05060a",
+  "start_url": "./index.html"
+}
