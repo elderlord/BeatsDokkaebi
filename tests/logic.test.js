@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { clamp, computeBeat, computeDistress, updateSealProgress } from '../src/logic.js';
+import { clamp, computeBeat, computeDistress, updateSealProgress, initialState, step } from '../src/logic.js';
 
 test('clamp 은 범위로 제한한다', () => {
   assert.equal(clamp(5, 0, 1), 1);
@@ -43,4 +43,44 @@ test('updateSealProgress 는 distress 낮으면 감소(관용)', () => {
 test('updateSealProgress 는 [0,1] 로 클램프', () => {
   assert.equal(updateSealProgress(0.9, 1, 10), 1);
   assert.equal(updateSealProgress(0.05, 0, 10), 0);
+});
+
+test('initialState 는 ATTRACT 에서 시작', () => {
+  assert.deepEqual(initialState(), {
+    phase: 'ATTRACT', sealProgress: 0, idleSeconds: 0, celebrateSeconds: 0,
+  });
+});
+
+test('ATTRACT 는 상호작용 시 PLAY 로', () => {
+  const s = step(initialState(), { dt: 0.016, distress: 0, interacted: true });
+  assert.equal(s.phase, 'PLAY');
+});
+
+test('ATTRACT 는 상호작용 없으면 그대로', () => {
+  const s = step(initialState(), { dt: 0.016, distress: 0, interacted: false });
+  assert.equal(s.phase, 'ATTRACT');
+});
+
+test('PLAY 는 봉인 링이 차면 SEAL 로', () => {
+  let s = { phase: 'PLAY', sealProgress: 0.99, idleSeconds: 0, celebrateSeconds: 0 };
+  s = step(s, { dt: 1, distress: 1, interacted: true });
+  assert.equal(s.phase, 'SEAL');
+});
+
+test('PLAY 는 무입력 20초 후 ATTRACT 로', () => {
+  let s = { phase: 'PLAY', sealProgress: 0, idleSeconds: 19.9, celebrateSeconds: 0 };
+  s = step(s, { dt: 0.2, distress: 0, interacted: false });
+  assert.equal(s.phase, 'ATTRACT');
+});
+
+test('PLAY 는 상호작용 시 idle 타이머 리셋', () => {
+  let s = { phase: 'PLAY', sealProgress: 0, idleSeconds: 10, celebrateSeconds: 0 };
+  s = step(s, { dt: 0.2, distress: 0, interacted: true });
+  assert.equal(s.idleSeconds, 0);
+});
+
+test('SEAL 은 축하 4초 후 ATTRACT 로 초기화', () => {
+  let s = { phase: 'SEAL', sealProgress: 1, idleSeconds: 0, celebrateSeconds: 3.9 };
+  s = step(s, { dt: 0.2, distress: 1, interacted: false });
+  assert.deepEqual(s, initialState());
 });
