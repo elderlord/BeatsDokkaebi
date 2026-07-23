@@ -8,19 +8,24 @@ export class FireRenderer {
     this.particles = [];
     this.distress = 0;
     this.phase = 'ATTRACT';
+    this.w = 0;
+    this.h = 0;
   }
 
-  resize(w, h) {
-    this.canvas.width = w;
-    this.canvas.height = h;
+  resize(cssW, cssH, dpr = 1) {
+    this.w = cssW;
+    this.h = cssH;
+    this.canvas.width = Math.round(cssW * dpr);
+    this.canvas.height = Math.round(cssH * dpr);
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
   setDistress(d) { this.distress = clamp(d, 0, 1); }
   setPhase(p) { this.phase = p; }
 
   spawn() {
-    const cx = this.canvas.width / 2;
-    const cy = this.canvas.height * 0.58;
+    const cx = this.w / 2;
+    const cy = this.h * 0.58;
     const calm = 1 - this.distress;          // distress↑ -> 불꽃이 위축·요동
     const count = Math.round(2 + calm * 4);
     for (let i = 0; i < count; i++) {
@@ -37,7 +42,7 @@ export class FireRenderer {
 
   render(dt) {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.clearRect(0, 0, this.w, this.h);
 
     // SEAL 이면 불꽃을 더 내지 않고 남은 입자만 소멸(빨려드는 느낌).
     if (this.phase !== 'SEAL') this.spawn();

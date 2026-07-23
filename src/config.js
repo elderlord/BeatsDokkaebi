@@ -8,6 +8,7 @@ export const TARGET_BEAT_MAX = 6;     // 봉인 대상 맥놀이 상한 (Hz)
 export const DISTRESS_PEAK_BEAT = 3;  // distress가 1이 되는 맥놀이 지점 (Hz)
 
 export const SEAL_THRESHOLD = 0.5;    // 봉인 링을 채우기 위한 distress 임계값
+export const SEAL_HINT_PROGRESS = 0.02;  // sealProgress 이 값을 넘으면 "결계가 흔들린다" 문구
 export const SEAL_HOLD_SECONDS = 3;   // 임계값 이상 유지 시 완전 봉인까지 걸리는 시간(초)
 export const SEAL_DECAY_FACTOR = 0.5; // 임계값 미만일 때 링이 빠지는 속도(충전 속도 대비 배율, 관용)
 export const CELEBRATE_SECONDS = 4;   // 봉인 성공 축하 지속(초)

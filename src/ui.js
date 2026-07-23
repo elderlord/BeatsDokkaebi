@@ -63,4 +63,9 @@ export class UI {
     const c = clamp(p, 0, 1);
     this.ring.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - c));
   }
+
+  resetSliders() {
+    this.left.value = String(FREQ_START);
+    this.right.value = String(FREQ_START);
+  }
 }

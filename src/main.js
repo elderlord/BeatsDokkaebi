@@ -2,16 +2,21 @@ import { AudioEngine } from './audio.js';
 import { FireRenderer } from './fire.js';
 import { UI } from './ui.js';
 import { computeBeat, computeDistress, initialState, step } from './logic.js';
+import { SEAL_HINT_PROGRESS } from './config.js';
 
 const audio = new AudioEngine();
 const ui = new UI(document);
-const fire = new FireRenderer(document.querySelector('#fire-canvas'));
+const canvas = document.querySelector('#fire-canvas');
+const fire = new FireRenderer(canvas);
 
 let state = initialState();
 let last = performance.now();
 
 function resize() {
-  fire.resize(window.innerWidth, window.innerHeight);
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth || window.innerWidth;
+  const h = canvas.clientHeight || window.innerHeight;
+  fire.resize(w, h, dpr);
 }
 window.addEventListener('resize', resize);
 resize();
@@ -25,7 +30,7 @@ window.addEventListener('pointerdown', () => {
 function statusText(s) {
   if (s.phase === 'SEAL') return '도깨비를 봉인했다!';
   if (s.phase === 'ATTRACT') return '결계를 흔들어 도깨비를 봉인하라';
-  if (s.sealProgress > 0.02) return '결계가 흔들린다...';
+  if (s.sealProgress > SEAL_HINT_PROGRESS) return '결계가 흔들린다...';
   return '두 주파수를 가까이 맞춰라';
 }
 
@@ -48,7 +53,10 @@ function frame(now) {
   // 페이즈 진입 부작용
   if (state.phase !== prevPhase) {
     if (state.phase === 'SEAL') audio.fadeOut();
-    if (state.phase === 'ATTRACT') audio.restore();
+    if (state.phase === 'ATTRACT') {
+      audio.restore();
+      ui.resetSliders();
+    }
   }
 
   const visualDistress = state.phase === 'SEAL' ? 1 : (state.phase === 'PLAY' ? playDistress : 0);
@@ -58,7 +66,7 @@ function frame(now) {
   fire.render(dt);
 
   ui.setBeat(beat);
-  ui.setDistress(visualDistress);
+  ui.setDistress(state.phase === 'SEAL' ? 0 : visualDistress);
   ui.setSealProgress(state.sealProgress);
   ui.setStatus(statusText(state));
 
